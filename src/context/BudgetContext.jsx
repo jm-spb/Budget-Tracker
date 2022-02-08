@@ -2,11 +2,13 @@ import React from 'react';
 import { v4 as uuidV4 } from 'uuid';
 import PropTypes from 'prop-types';
 
-const BudgetsContext = React.createContext();
+import useLocalStorage from '../hooks/useLocalStorage';
+
+export const BudgetsContext = React.createContext();
 
 const BudgetsProvider = ({ children }) => {
-  const [budgets, setBudgets] = React.useState([]);
-  const [expenses, setExpenses] = React.useState([]);
+  const [budgets, setBudgets] = useLocalStorage('budgets', []);
+  const [expenses, setExpenses] = useLocalStorage('expenses', []);
 
   // TODO: Refactor useCallback, useMemo.
   const getBudgetExpenses = React.useCallback(
@@ -48,7 +50,7 @@ const BudgetsProvider = ({ children }) => {
       deleteBudget,
       deleteExpense,
     }),
-    [],
+    [budgets, expenses],
   );
 
   return <BudgetsContext.Provider value={memoValues}>{children}</BudgetsContext.Provider>;
