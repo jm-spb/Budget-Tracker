@@ -1,8 +1,8 @@
 import React from 'react';
 import { v4 as uuidV4 } from 'uuid';
 import PropTypes from 'prop-types';
-
 import useLocalStorage from '../hooks/useLocalStorage';
+import UNCATEGORIZED_BUDGET_ID from '../constants';
 
 export const BudgetsContext = React.createContext();
 
@@ -10,35 +10,36 @@ const BudgetsProvider = ({ children }) => {
   const [budgets, setBudgets] = useLocalStorage('budgets', []);
   const [expenses, setExpenses] = useLocalStorage('expenses', []);
 
-  // TODO: Refactor useCallback, useMemo.
-  const getBudgetExpenses = React.useCallback(
-    (budgetId) => expenses.filter((expense) => expense.budgetId === budgetId),
-    [],
-  );
+  const getBudgetExpenses = (budgetId) =>
+    expenses.filter((expense) => expense.budgetId === budgetId);
 
-  const addExpense = React.useCallback(({ description, amount, budgetId }) => {
+  const addExpense = ({ description, amount, budgetId }) => {
     setExpenses((prevExpenses) => [
       ...prevExpenses,
       { id: uuidV4(), description, amount, budgetId },
     ]);
-  }, []);
+  };
 
-  const addBudget = React.useCallback(({ name, max }) => {
+  const addBudget = ({ name, max }) => {
     setBudgets((prevBudgets) => {
       if (prevBudgets.find((budget) => budget.name === name)) {
         return prevBudgets;
       }
       return [...prevBudgets, { id: uuidV4(), name, max }];
     });
-  }, []);
+  };
 
-  const deleteBudget = React.useCallback(({ id }) => {
+  const deleteBudget = ({ id }) => {
+    setExpenses((prevExpenses) => prevExpenses.map((expense) => {
+      if (expense.budgetId !== id) return expense;
+      return {...expense, budgetId: UNCATEGORIZED_BUDGET_ID}
+    }))
     setBudgets((prevBudgets) => prevBudgets.filter((budget) => budget.id !== id));
-  }, []);
+  };
 
-  const deleteExpense = React.useCallback(({ id }) => {
+  const deleteExpense = ({ id }) => {
     setExpenses((prevExpenses) => prevExpenses.filter((expense) => expense.id !== id));
-  }, []);
+  };
 
   const memoValues = React.useMemo(
     () => ({
